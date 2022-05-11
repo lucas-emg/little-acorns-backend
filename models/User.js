@@ -19,6 +19,6 @@ const userSchema = new Schema ({
         required: true
     },
     todosList: [{ type: Schema.Types.ObjectId, ref:'TodoList'}]
-}
+})
 
 module.exports = model('User', userSchema)
