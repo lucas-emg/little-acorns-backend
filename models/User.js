@@ -11,14 +11,14 @@ const userSchema = new Schema ({
         unique: true,
         match: /[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+/
     },
+    profileImage: {
+        type: String
+    },
     passwordHash: {
         type: String,
         required: true
     },
-    todos: [{ type: Schema.Types.ObjectId, ref:'Todo'}]
-}, 
-{
-    timestamps: true
-})
+    todosList: [{ type: Schema.Types.ObjectId, ref:'TodoList'}]
+}
 
 module.exports = model('User', userSchema)
