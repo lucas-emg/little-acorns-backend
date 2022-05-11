@@ -9,7 +9,7 @@ const todoSchema = new Schema ({
         type: Boolean,
         default: false,
     },
-    user: {type: Schema.Types.ObjectId, ref:'User'}
+    todoList: {type: Schema.Types.ObjectId, ref:'TodoList'}
 },
 {
     timestamps: true
