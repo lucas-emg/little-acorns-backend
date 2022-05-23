@@ -20,4 +20,6 @@ app.use(require('./middlewares/auth.middleware'))
 
 app.use('/todo', require('./routes/todo.routes'))
 
+app.use('/todolists', require('./routes/todolist.routes'))
+
 app.listen(process.env.PORT, console.log(`App is loading on port: ${process.env.PORT}`))
