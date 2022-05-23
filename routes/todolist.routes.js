@@ -3,7 +3,7 @@ const User = require('../models/User')
 const TodoList = require('../models/TodoList')
 const mongoose = require('mongoose')
 const Todo = require('../models/Todo')
-const { findByIdAndDelete } = require('../models/User')
+const deleteAllTodos = require('../controllers/deleteAllTodos')
 
 const router = Router()
 
@@ -51,9 +51,13 @@ router.delete('/:id', async (req, res) => {
 
     try {
 
+        const todos = await TodoList.findById(todoListId).select(["todos", "-_id"])
+
+        deleteAllTodos(todos.todos)
+
         await TodoList.findByIdAndDelete(todoListId)
 
-        res.status(200).json({message: "List has been deleted"})
+        res.status(200).json({message: "All todos have been deleted"})
 
     } catch (error) {
 
