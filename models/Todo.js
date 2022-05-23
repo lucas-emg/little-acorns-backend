@@ -9,6 +9,10 @@ const todoSchema = new Schema ({
         type: Boolean,
         default: false,
     },
+
+    fileUpload: [{
+        type: String
+    }],
     todoList: {type: Schema.Types.ObjectId, ref:'TodoList'}
 },
 {

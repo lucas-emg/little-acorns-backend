@@ -2,52 +2,52 @@ const { Router } = require('express')
 const Todo = require('../models/Todo')
 const User = require('../models/User')
 const mongoose = require('mongoose')
+const TodoList = require('../models/TodoList')
 
 const router = Router()
 
-router.get('/', async (req, res) => {
+router.get('/getAllTodosFromList/:id', async (req, res) => {
 
     try {
-        const userId = req.user.id
-        const allTodos = await Todo.find({user: userId})
+        const todoListId = req.params.id
+        const allTodos = await Todo.find({todoList: todoListId})
 
         res.status(200).json(allTodos)
 
-    } catch {
-
-        res.status(500)
-
-    }
-})
-
-router.post('/', async (req, res) => {
-
-    const payload = req.body
-
-    try {
-        const userId = req.user.id
-        const newTodo = await Todo.create({...payload, user: userId})
-        await User.findByIdAndUpdate(userId, { $push: { todos: newTodo._id }})
-        res.status(200).json(newTodo)
-
     } catch (error) {
 
-        res.status(500).json({error: error.message})
+        res.status(500).json(error.message)
 
     }
 })
 
-router.put('/:id', async (req, res) => {
+router.post('/newtodo/:id', async (req, res) => {
+
+    const payload = req.body
+    const todoListId = req.params.id
+
+    try {
+
+        const newTodo = await Todo.create({...payload, todoList: todoListId})
+        await TodoList.findByIdAndUpdate(todoListId, {$push: {todos: newTodo._id}})
+
+        res.status(200).json(newTodo)
+        
+    } catch (error) {
+
+        res.status(500).json(error.message)
+        
+    }
+})
+
+router.put('/updateTodo/:id', async (req, res) => {
 
     const { id } = req.params
     const payload = req.body
-    const userId = req.user.id
 
     try {
 
-        const updatedTodo = await Todo.findOneAndUpdate({_id: id, user: userId}, payload, {new: true})
-
-        if(!updatedTodo) throw new Error ('Cannot update to do from another user')
+        const updatedTodo = await Todo.findOneAndUpdate({_id: id}, payload, {new: true})
 
         res.status(200).json(updatedTodo)
 
@@ -58,21 +58,19 @@ router.put('/:id', async (req, res) => {
     }
 })
 
-router.delete('/:id', async (req, res) => {
+router.delete('/deleteOneTodo/:id', async (req, res) => {
 
     const { id } = req.params
-    const userId = req.user.id
 
     try {
 
         const todo = await Todo.findById(id)
-        
-        if (todo.user.toString() !== userId) throw new Error ('Cannot delete to do from another user')
+
+        await TodoList.findOneAndUpdate({_id: todo.todoList}, {$pull: {todos: id }})
 
         todo.delete()
-        await User.findByIdAndUpdate(userId, {$pull: {todos: id }})
 
-        res.status(204).json("Task was deleted")
+        res.status(204)
 
     } catch (error) {
         
@@ -80,15 +78,16 @@ router.delete('/:id', async (req, res) => {
     }
 })
 
-router.delete('/', async (req, res) => {
+router.delete('/deleteAllTodos/:id', async (req, res) => {
+
+    const todoListId = req.params.id
 
     try {
 
-        const userId = req.user.id
-        await Todo.find({user: userId}).deleteMany({})
-        await User.findByIdAndUpdate(userId, {$unset: {todos: 1}})
+        await Todo.find({todoList: todoListId}).deleteMany({})
+        await TodoList.findByIdAndUpdate(todoListId, {$unset: {todos: 1}})
 
-        res.status(204).json('All user to dos were deleted')
+        res.status(204).json("All todos deleted")
 
     } catch (error) {
         

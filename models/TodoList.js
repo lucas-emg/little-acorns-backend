@@ -9,9 +9,6 @@ const todoListSchema = new Schema ({
     description: {
         type: String,
     },
-    fileUpload: [{
-        type: String
-    }],
     todos: [{type: Schema.Types.ObjectId, ref: 'Todo'}],
     user: [{type: Schema.Types.ObjectId, ref: 'User'}]
 
