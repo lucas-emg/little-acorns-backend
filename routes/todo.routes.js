@@ -1,6 +1,5 @@
 const { Router } = require('express')
 const Todo = require('../models/Todo')
-const User = require('../models/User')
 const mongoose = require('mongoose')
 const TodoList = require('../models/TodoList')
 
