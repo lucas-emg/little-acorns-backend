@@ -2,7 +2,6 @@ const { Router } = require('express')
 const User = require('../models/User')
 const TodoList = require('../models/TodoList')
 const mongoose = require('mongoose')
-const Todo = require('../models/Todo')
 const deleteAllTodos = require('../controllers/deleteAllTodos')
 
 const router = Router()
@@ -65,10 +64,13 @@ router.put('/updateTodoList/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
 
     const todoListId = req.params.id
+    const userId = req.user.id
 
     try {
 
-        const todos = await TodoList.findById(todoListId).select(["todos", "-_id"])
+        const todos = await TodoList.findById(todoListId)
+
+        if (todos.user.toString() !== userId) throw new Error ('Cannot delete list from another user')
 
         deleteAllTodos(todos.todos)
 
@@ -83,24 +85,6 @@ router.delete('/:id', async (req, res) => {
 
 })
 
-router.post('/newtodo/:id', async (req, res) => {
-
-    const payload = req.body
-    const todoListId = req.params.id
-
-    try {
-
-        const newTodo = await Todo.create({...payload, todoList: todoListId})
-        await TodoList.findByIdAndUpdate(todoListId, {$push: {todos: newTodo._id}})
-
-        res.status(200).json(newTodo)
-        
-    } catch (error) {
-
-        res.status(500).json(error.message)
-        
-    }
-})
 
 
 module.exports = router
