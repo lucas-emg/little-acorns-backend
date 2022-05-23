@@ -45,6 +45,23 @@ router.post('/', async(req,res) => {
 
 })
 
+router.put('/updateTodoList/:id', async (req, res) => {
+
+    const { id } = req.params
+    const payload = req.body
+
+    try {
+        
+        const updatedTodoList = await TodoList.findOneAndUpdate({_id: id}, payload, {new: true})
+
+        res.status(200).json(updatedTodoList)
+
+    } catch (error) {
+        
+        res.status(500).json(error.message)
+    }
+})
+
 router.delete('/:id', async (req, res) => {
 
     const todoListId = req.params.id
