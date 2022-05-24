@@ -87,7 +87,7 @@ router.delete('/deleteOneTodo/:id', async (req, res) => {
 
         await TodoList.findOneAndUpdate({_id: todo.todoList}, {$pull: {todos: id }})
 
-        await todo.delete()
+        todo.delete()
 
         res.status(204)
 
