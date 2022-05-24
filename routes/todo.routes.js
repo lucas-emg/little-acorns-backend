@@ -2,7 +2,6 @@ const { Router } = require('express')
 const Todo = require('../models/Todo')
 const mongoose = require('mongoose')
 const TodoList = require('../models/TodoList')
-const uploadProfilePricture = require('../config/cloudinary.profile.config')
 const uploadTodoImage = require('../config/cloudinary.todo.config')
 
 const router = Router()
