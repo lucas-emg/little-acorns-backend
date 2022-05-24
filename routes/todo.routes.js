@@ -2,6 +2,8 @@ const { Router } = require('express')
 const Todo = require('../models/Todo')
 const mongoose = require('mongoose')
 const TodoList = require('../models/TodoList')
+const uploadProfilePricture = require('../config/cloudinary.profile.config')
+const uploadTodoImage = require('../config/cloudinary.todo.config')
 
 const router = Router()
 
@@ -57,6 +59,25 @@ router.put('/updateTodo/:id', async (req, res) => {
     }
 })
 
+router.put('/uploadTodoImage/:id', uploadTodoImage.single('image') ,async (req, res) => {
+
+    const { id } = req.params
+    const { path } = req.file
+
+    try {
+
+        const updatedTodo = await Todo.findByIdAndUpdate({_id: id}, {fileUpload: path}, {new: true})
+
+        res.status(200).json(updatedTodo)
+        
+    } catch (error) {
+
+        res.status(500).json(error.message)
+        
+    }
+
+})
+
 router.delete('/deleteOneTodo/:id', async (req, res) => {
 
     const { id } = req.params
@@ -67,7 +88,7 @@ router.delete('/deleteOneTodo/:id', async (req, res) => {
 
         await TodoList.findOneAndUpdate({_id: todo.todoList}, {$pull: {todos: id }})
 
-        todo.delete()
+        await todo.delete()
 
         res.status(204)
 

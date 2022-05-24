@@ -11,10 +11,10 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
     cloudinary,
     params: {
-        folder: 'LittleAcornsProfilePictures',
+        folder: 'LittleAcornsTodoImages'
     }
 })
 
-const uploadProfilePricture = multer({storage})
+const uploadTodoImage = multer({storage})
 
-module.exports = uploadProfilePricture
+module.exports = uploadTodoImage
