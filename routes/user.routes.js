@@ -1,6 +1,7 @@
 const { Router } = require('express')
 const mongoose = require('mongoose')
 const uploadProfilePricture = require('../config/cloudinary.profile.config')
+const filterSearchedUser = require('../controllers/user.controllers/filterSearchedUser')
 const { update } = require('../models/User')
 const User = require('../models/User')
 
@@ -37,6 +38,28 @@ router.put('/uploadProfilePhoto', uploadProfilePricture.single('profilePic'), as
 
         res.status(200).json(updatedUser)
 
+    } catch (error) {
+
+        res.status(500).json(error.message)
+        
+    }
+
+})
+
+router.get('/searchOneUser/:search', async (req, res) => {
+
+    const searchParam = req.params.search
+    
+    try {
+
+        const allUsers = await User.find()
+
+        console.log(allUsers)
+
+        const search = filterSearchedUser(allUsers, searchParam)
+
+        res.status(200).json(search)
+        
     } catch (error) {
 
         res.status(500).json(error.message)
