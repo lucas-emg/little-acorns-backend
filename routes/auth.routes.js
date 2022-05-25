@@ -2,6 +2,10 @@ const { Router } = require('express')
 const User = require('../models/User')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const validateRequiredFields = require('../controllers/auth.controllers/validateRequiredFields')
+const validateExistingEmail = require('../controllers/auth.controllers/validateExistingEmail')
+const validateCredentialsUser = require('../controllers/auth.controllers/validateCredentialsUser')
+const validateCredentialsPassword = require('../controllers/auth.controllers/validateCredentialsPassword')
 
 const router = Router()
 
@@ -11,11 +15,11 @@ router.post('/signup', async (req, res) => {
 
         const { name, email, password } = req.body
 
-        if(!name || !email || !password) throw new Error ('All fields are required')
+        validateRequiredFields(name, email, password, 400, "All fields are required")
 
         const emailCheck = await User.findOne({email})
 
-        if(emailCheck) throw new Error ('This email is already in user')
+        validateExistingEmail(emailCheck, 400, "This email is already in use")
 
         const salt = await bcrypt.genSalt(12)
 
@@ -31,9 +35,8 @@ router.post('/signup', async (req, res) => {
 
     } catch (error) {
 
-        if (error.message === 'This email is already in user') res.status(400).json({msg: error.message})
+        res.status(error.status || 500).json(error.message)
 
-        res.status(500).json({error})
     }
 
 })
@@ -46,11 +49,11 @@ router.post('/login', async (req, res) => {
 
         const user = await User.findOne({email})
 
-        if (!user) throw new Error ('User or Password are invalid')
+        validateCredentialsUser(user, 401, "User or Password are invalid")
 
         const passwordValidation = await bcrypt.compare(password, user.passwordHash)
 
-        if (!passwordValidation) throw new Error ('User or Password are invalid')
+        validateCredentialsPassword(passwordValidation, 401, "User or Password are invalid")
 
         const payload = {
             id: user._id,
@@ -66,11 +69,7 @@ router.post('/login', async (req, res) => {
 
     } catch (error) {
 
-        if(error.message === 'User or Password are invalid') {
-            res.status(401).json({msg: error.message})
-        }
-
-        res.status(500).json({msg: error.message})
+        res.status(error.status || 500).json(error.message)
     }
 })
 
