@@ -2,11 +2,11 @@ const { Router } = require('express')
 const mongoose = require('mongoose')
 const uploadProfilePricture = require('../config/cloudinary.profile.config')
 const filterSearchedUser = require('../controllers/user.controllers/filterSearchedUser')
-const { update } = require('../models/User')
 const User = require('../models/User')
 
 const router = Router()
 
+//Enable Users to update their profile
 router.put('/updateUser', async (req, res) => {
 
     const userId = req.user.id
@@ -25,6 +25,7 @@ router.put('/updateUser', async (req, res) => {
     }
 })
 
+//Enable Users to Upload a Profile Picture
 router.put('/uploadProfilePhoto', uploadProfilePricture.single('profilePic'), async (req, res) => {
 
     const { path } = req.file
@@ -46,6 +47,7 @@ router.put('/uploadProfilePhoto', uploadProfilePricture.single('profilePic'), as
 
 })
 
+//Serach User by Username or Email
 router.get('/searchOneUser/:search', async (req, res) => {
 
     const searchParam = req.params.search

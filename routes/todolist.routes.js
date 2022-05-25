@@ -4,9 +4,11 @@ const TodoList = require('../models/TodoList')
 const mongoose = require('mongoose')
 const deleteAllTodos = require('../controllers/deleteAllTodos')
 const validateUser = require('../controllers/validateUser')
+const { route } = require('./todo.routes')
 
 const router = Router()
 
+//Display all TodoLists of the user
 router.get('/', async(req, res) => {
 
     const userId = req.user.id 
@@ -25,6 +27,25 @@ router.get('/', async(req, res) => {
 
 })
 
+//Gets all TodoLists shared with me
+router.get('/sharedWithMe', async(req, res) => {
+
+    const { id } = req.user
+
+    try {
+
+        const sharedWithMe = await TodoList.find({invitedUsers: id})
+
+        res.status(200).json(sharedWithMe)
+        
+    } catch (error) {
+
+        res.status(500).json(error.message)
+        
+    }
+})
+
+//Creates a new Todo Lists
 router.post('/', async(req,res) => {
 
     const payload = req.body
@@ -45,6 +66,7 @@ router.post('/', async(req,res) => {
 
 })
 
+//Update a TodoList
 router.put('/updateTodoList/:id', async (req, res) => {
 
     const userId = req.user.id
@@ -67,6 +89,25 @@ router.put('/updateTodoList/:id', async (req, res) => {
     }
 })
 
+//Share a TodoList with another user
+router.put('/shareTodoList/:todoListId/:newUserId', async (req, res) => {
+
+    const { todoListId } = req.params
+    const { newUserId } = req.params
+
+    try {
+
+        const updatedTodoList = await TodoList.findByIdAndUpdate(todoListId, {$push: { invitedUsers: newUserId }}, { new: true })
+
+        res.status(200).json(updatedTodoList)
+        
+    } catch (error) {
+        
+        res.status(500).json(error.message)
+    }
+})
+
+//Delete a TodoList
 router.delete('/:id', async (req, res) => {
 
     const todoListId = req.params.id
