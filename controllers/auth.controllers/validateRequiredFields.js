@@ -1,6 +1,6 @@
-const validateRequiredFields = (name, email, password, status, message) => {
+const validateRequiredFields = (name, username, email, password, status, message) => {
 
-    if (!name || !email || !password) {
+    if (!name || !username || !email || !password) {
 
         const error = new Error
 
