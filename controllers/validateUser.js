@@ -1,7 +1,8 @@
-const validateUser = (user, userId, status, message) => {
+const validateUser = (user, invitedUserArr, userId, status, message) => {
 
-    if (user.toString() !== userId) {
-
+    if (user.toString() === userId || invitedUserArr.includes(userId)) {
+        return
+    }
         const error = new Error
 
         error.status = status.toString()
@@ -11,9 +12,6 @@ const validateUser = (user, userId, status, message) => {
         console.log(error)
 
         throw error
-    }
-
-    return
 
 }
 

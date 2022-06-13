@@ -77,7 +77,7 @@ router.put('/updateTodoList/:id', async (req, res) => {
         
         const userValidation = await TodoList.findById(id)
 
-        validateUser(userValidation.user, userId, 401, "Cannot update another user's Todo List")
+        validateUser(userValidation.user, userValidation.invitedUsers, userId, 401, "Cannot update another user's Todo List")
 
         const updatedTodoList = await TodoList.findByIdAndUpdate({ _id: id },payload, { new: true })
 
@@ -117,7 +117,7 @@ router.delete('/:id', async (req, res) => {
 
         const todos = await TodoList.findById(todoListId)
 
-        validateUser(todos.user, userId, 401, "Cannot delete another user's Todo List")
+        validateUser(userValidation.user, userValidation.invitedUsers, userId, 401, "Cannot update another user's Todo List")
 
         deleteAllTodos(todos.todos)
 
