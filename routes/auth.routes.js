@@ -13,9 +13,9 @@ router.post('/signup', async (req, res) => {
 
     try {
 
-        const { name, email, password } = req.body
+        const { name, username, email, password } = req.body
 
-        validateRequiredFields(name, email, password, 400, "All fields are required")
+        validateRequiredFields(name, username, email, password, 400, "All fields are required")
 
         const emailCheck = await User.findOne({email})
 
@@ -25,8 +25,9 @@ router.post('/signup', async (req, res) => {
 
         const passwordHash = await bcrypt.hash(password, salt)
 
-        const newUser = await User.create({
+         await User.create({
             name,
+            username,
             email,
             passwordHash
         })

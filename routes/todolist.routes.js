@@ -4,9 +4,13 @@ const TodoList = require('../models/TodoList')
 const mongoose = require('mongoose')
 const deleteAllTodos = require('../controllers/deleteAllTodos')
 const validateUser = require('../controllers/validateUser')
+const validateUserIsAdmin = require('../controllers/user.controllers/validateUserIsAdmin')
+const { route } = require('./todo.routes')
+const validateUseIsInvited = require('../controllers/todolist.controllers/validateUseIsInvited')
 
 const router = Router()
 
+//Display all TodoLists of the user
 router.get('/', async(req, res) => {
 
     const userId = req.user.id 
@@ -25,6 +29,25 @@ router.get('/', async(req, res) => {
 
 })
 
+//Gets all TodoLists shared with me
+router.get('/sharedWithMe', async(req, res) => {
+
+    const { id } = req.user
+
+    try {
+
+        const sharedWithMe = await TodoList.find({invitedUsers: id})
+
+        res.status(200).json(sharedWithMe)
+        
+    } catch (error) {
+
+        res.status(500).json(error.message)
+        
+    }
+})
+
+//Creates a new Todo Lists
 router.post('/', async(req,res) => {
 
     const payload = req.body
@@ -32,7 +55,7 @@ router.post('/', async(req,res) => {
 
     try {
 
-        const newTodoList = await TodoList.create({...payload, user: userId})
+        const newTodoList = await TodoList.create({...payload, user: userId, admins: userId})
         await User.findByIdAndUpdate(userId, {$push: {todoList: newTodoList._id}})
 
         res.status(200).json(newTodoList)
@@ -45,6 +68,7 @@ router.post('/', async(req,res) => {
 
 })
 
+//Update a TodoList
 router.put('/updateTodoList/:id', async (req, res) => {
 
     const userId = req.user.id
@@ -55,7 +79,7 @@ router.put('/updateTodoList/:id', async (req, res) => {
         
         const userValidation = await TodoList.findById(id)
 
-        validateUser(userValidation.user, userId, 401, "Cannot update another user's Todo List")
+        validateUser(userValidation.user, userValidation.invitedUsers, userId, 401, "Cannot update another user's Todo List")
 
         const updatedTodoList = await TodoList.findByIdAndUpdate({ _id: id },payload, { new: true })
 
@@ -67,6 +91,117 @@ router.put('/updateTodoList/:id', async (req, res) => {
     }
 })
 
+//Share a TodoList with another user
+router.put('/shareTodoList/:todoListId/:newUserId', async (req, res) => {
+
+    const { todoListId } = req.params
+    const { newUserId } = req.params
+
+    try {
+
+        const todoList = await TodoList.findById(todoListId)
+
+        validateUseIsInvited(todoList.invitedUsers, newUserId, 400, 'User is already invited')
+
+        const updatedTodoList = await TodoList.findByIdAndUpdate(todoListId, {$push: { invitedUsers: newUserId }}, { new: true })
+
+        res.status(200).json(updatedTodoList)
+        
+    } catch (error) {
+        
+        res.status(error.status || 500).json(error.message)
+    }
+})
+
+//Remove invited users
+router.put('/removeInvitedUser/:todoListId/:InvitedUserId', async (req, res) => {
+
+    const userId = req.user.id
+    const { todoListId } = req.params
+    const { InvitedUserId } = req.params
+
+    try {
+
+        const userValidation = await TodoList.findById(todoListId)
+
+        validateUserIsAdmin(userValidation.admins, userId, 401, 'Only Admins can remove invited users')
+
+        const updatedTodoList = await TodoList.findByIdAndUpdate(todoListId, {$pull: { invitedUsers: InvitedUserId }}, { new: true })
+
+        res.status(200).json(updatedTodoList)
+        
+    } catch (error) {
+        
+        res.status(error.status || 500).json(error.message)
+    }
+})
+
+//Leave a Todo List
+router.put('/leaveTodoList/:todoListId', async (req, res) => {
+
+    const userId = req.user.id
+    const { todoListId } = req.params
+
+    try {
+        
+        const updatedTodoList = await TodoList.findByIdAndUpdate(todoListId, {$pull: { invitedUsers: userId }}, {new: true})
+
+        res.status(200).json({message: `You have left ${updatedTodoList.title}`})
+
+    } catch (error) {
+
+        res.status(error.status || 500).json(error.message)
+    }
+})
+
+
+//Add new Admin to TodoList
+router.put('/addAdminTodoList/:todoListId/:newUserId', async (req, res) => {
+
+    const userId = req.user.id
+    const { todoListId } = req.params
+    const { newUserId } = req.params
+
+    try {
+
+        const validateUser = await TodoList.findById(todoListId)
+
+        validateUserIsAdmin(validateUser.admins, userId, 401, 'Only Admins can add a new Admin')
+
+        const updatedTodoList = await TodoList.findByIdAndUpdate(todoListId, {$push: { admins: newUserId }}, { new: true })
+
+        res.status(200).json(updatedTodoList)
+        
+    } catch (error) {
+        
+        res.status(error.status || 500).json(error.message)
+    }
+})
+
+//Remove Admin to TodoList
+router.put('/removeAdmin/:todoListId/:adminId', async (req, res) => {
+
+    const userId = req.user.id
+    const { todoListId } = req.params
+    const { adminId } = req.params
+
+    try {
+
+        const validateUser = await TodoList.findById(todoListId)
+
+        validateUserIsAdmin(validateUser.admins, userId, 401, 'Only Admins can remove other admins from the list')
+
+        const updatedTodoList = await TodoList.findByIdAndUpdate(todoListId, {$pull: { admins: adminId }}, { new: true })
+
+        res.status(200).json(updatedTodoList)
+        
+    } catch (error) {
+        
+        res.status(error.status || 500).json(error.message)
+    }
+})
+
+//Delete a TodoList
 router.delete('/:id', async (req, res) => {
 
     const todoListId = req.params.id
@@ -76,8 +211,10 @@ router.delete('/:id', async (req, res) => {
 
         const todos = await TodoList.findById(todoListId)
 
-        validateUser(todos.user, userId, 401, "Cannot delete another user's Todo List")
+        validateUser(todos.user, todos.invitedUsers, userId, 401, "Cannot update another user's Todo List")
 
+        validateUserIsAdmin(todos.admins, userId, 401, 'Only Admins can delete a TodoList')
+        
         deleteAllTodos(todos.todos)
 
         await TodoList.findByIdAndDelete(todoListId)

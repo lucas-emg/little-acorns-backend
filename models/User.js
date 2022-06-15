@@ -5,6 +5,11 @@ const userSchema = new Schema ({
         type: String,
         required: true
     },
+    username: {
+        type: String,
+        required: true,
+        unique: true
+    },
     email: {
         type: String,
         required: true,
@@ -18,7 +23,8 @@ const userSchema = new Schema ({
         type: String,
         required: true
     },
-    todosList: [{ type: Schema.Types.ObjectId, ref:'TodoList'}]
+    todosList: [{ type: Schema.Types.ObjectId, ref:'TodoList'}],
+    sharedTodoLists: [{ type: Schema.Types.ObjectId, ref:'TodoList'}]
 })
 
 module.exports = model('User', userSchema)

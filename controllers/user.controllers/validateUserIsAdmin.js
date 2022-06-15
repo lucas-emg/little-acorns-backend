@@ -1,6 +1,6 @@
-const validateUser = (user, invitedUserArr, userId, status, message) => {
+const validateUserIsAdmin = (adminsList, userId, status, message) => {
 
-    if (user.toString() === userId || invitedUserArr.includes(userId)) {
+    if (adminsList.includes(userId)) {
         return
     }
         const error = new Error
@@ -15,4 +15,4 @@ const validateUser = (user, invitedUserArr, userId, status, message) => {
 
 }
 
-module.exports = validateUser
+module.exports = validateUserIsAdmin

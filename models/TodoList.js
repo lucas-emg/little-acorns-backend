@@ -10,7 +10,9 @@ const todoListSchema = new Schema ({
         type: String,
     },
     todos: [{type: Schema.Types.ObjectId, ref: 'Todo'}],
-    user: [{type: Schema.Types.ObjectId, ref: 'User'}]
+    user: [{type: Schema.Types.ObjectId, ref: 'User'}],
+    invitedUsers:[{ type: Schema.Types.ObjectId, ref:'User'}],
+    admins: [{ type: Schema.Types.ObjectId, ref:'User'}]
 
 })
 
