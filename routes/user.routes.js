@@ -35,8 +35,6 @@ router.put('/uploadProfilePhoto', uploadProfilePricture.single('profilePic'), as
 
         const updatedUser = await User.findByIdAndUpdate(userId, { profileImage: path }, { new: true })
 
-        console.log(userId)
-
         res.status(200).json(updatedUser)
 
     } catch (error) {
@@ -54,9 +52,7 @@ router.get('/searchOneUser/:search', async (req, res) => {
     
     try {
 
-        const allUsers = await User.find()
-
-        console.log(allUsers)
+        const allUsers = await User.find().select('-passwordHash')
 
         const search = filterSearchedUser(allUsers, searchParam)
 

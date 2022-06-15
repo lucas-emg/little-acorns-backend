@@ -6,6 +6,7 @@ const deleteAllTodos = require('../controllers/deleteAllTodos')
 const validateUser = require('../controllers/validateUser')
 const validateUserIsAdmin = require('../controllers/user.controllers/validateUserIsAdmin')
 const { route } = require('./todo.routes')
+const validateUseIsInvited = require('../controllers/todolist.controllers/validateUseIsInvited')
 
 const router = Router()
 
@@ -98,13 +99,17 @@ router.put('/shareTodoList/:todoListId/:newUserId', async (req, res) => {
 
     try {
 
+        const todoList = await TodoList.findById(todoListId)
+
+        validateUseIsInvited(todoList.invitedUsers, newUserId, 400, 'User is already invited')
+
         const updatedTodoList = await TodoList.findByIdAndUpdate(todoListId, {$push: { invitedUsers: newUserId }}, { new: true })
 
         res.status(200).json(updatedTodoList)
         
     } catch (error) {
         
-        res.status(500).json(error.message)
+        res.status(error.status || 500).json(error.message)
     }
 })
 
@@ -130,6 +135,25 @@ router.put('/removeInvitedUser/:todoListId/:InvitedUserId', async (req, res) => 
         res.status(error.status || 500).json(error.message)
     }
 })
+
+//Leave a Todo List
+router.put('/leaveTodoList/:todoListId', async (req, res) => {
+
+    const userId = req.user.id
+    const { todoListId } = req.params
+
+    try {
+        
+        const updatedTodoList = await TodoList.findByIdAndUpdate(todoListId, {$pull: { invitedUsers: userId }}, {new: true})
+
+        res.status(200).json({message: `You have left ${updatedTodoList.title}`})
+
+    } catch (error) {
+
+        res.status(error.status || 500).json(error.message)
+    }
+})
+
 
 //Add new Admin to TodoList
 router.put('/addAdminTodoList/:todoListId/:newUserId', async (req, res) => {
